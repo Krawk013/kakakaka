@@ -10,15 +10,90 @@
     <div id="chat-container">
         <div id="messages"></div>
         <form id="message-form">
-            <input type="text" id="message-input" placeholder="Type a message or paste a link...">            <button type="submit">Send</button>
+            <input type="text" id="message-input" placeholder="Type a message or paste a link...">
+            <button type="submit">Send</button>
             <input type="file" id="file-input" style="display: none;">
             <button type="button" id="attach-file">Attach File</button>
             <button type="button" id="attach-gif">Attach GIF</button>
         </form>
     </div>
-    <div id="selected-image" style="display: none;">
-        <img id="selected-image-preview" src="" alt="Selected image">
-      </div>
     <script src="script.js"></script>
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+
+        ws.onopen = () => {
+            console.log('Connected to server');
+        };
+
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+
+            if (message.type === 'image') {
+                const messageElement = createMessageElement(message.content, message.id);
+                messages.appendChild(messageElement);
+            } else {
+                // Handle other message types here
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('Disconnected from server');
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        // Send messages using ws.send(JSON.stringify(message));
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <form id="message-form">
+            <input type="text" id="message-input" placeholder="Type a message or paste a link...">
+            <button type="submit">Send</button>
+            <input type="file" id="file-input" style="display: none;">
+            <button type="button" id="attach-file">Attach File</button>
+            <button type="button" id="attach-gif">Attach GIF</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+
+        ws.onopen = () => {
+            console.log('Connected to server');
+        };
+
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+
+            if (message.type === 'image') {
+                const messageElement = createMessageElement(message.content, message.id);
+                messages.appendChild(messageElement);
+            } else {
+                // Handle other message types here
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('Disconnected from server');
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        // Send messages using ws.send(JSON.stringify(message));
+    </script>
 </body>
 </html>
