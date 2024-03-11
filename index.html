@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <form id="message-form">
+            <input type="text" id="message-input" placeholder="Type a message or paste a link...">            <button type="submit">Send</button>
+            <input type="file" id="file-input" style="display: none;">
+            <button type="button" id="attach-file">Attach File</button>
+            <button type="button" id="attach-gif">Attach GIF</button>
+        </form>
+    </div>
+    <div id="selected-image" style="display: none;">
+        <img id="selected-image-preview" src="" alt="Selected image">
+      </div>
+    <script src="script.js"></script>
+</body>
+</html>
