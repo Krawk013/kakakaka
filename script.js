@@ -12,33 +12,21 @@ function generateMessageId() {
 
 // Add a message to the chat
 function addMessage(message, sender) {
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message');
-
-  const messageText = document.createElement('span');
-  messageText.classList.add('message-text');
-  messageText.textContent = message;
-
-  const messageSender = document.createElement('span');
-  messageSender.classList.add('message-sender');
-  messageSender.textContent = sender + ': ';
-
-  messageElement.appendChild(messageSender);
-  messageElement.appendChild(messageText);
+  const messageElement = createMessageElement(message, generateMessageId());
   messages.appendChild(messageElement);
 }
 
 // Handle form submission
 messageForm.addEventListener('submit', (event) => {
     event.preventDefault();
-  
+
     const message = messageInput.value.trim();
     if (!message) return;
-  
+
     // Check if the message contains a link
     const urlPattern = /(https?:\/\/[^\s]+)/g;
     const urlMatch = message.match(urlPattern);
-  
+
     if (urlMatch) {
       // Send each link separately
       urlMatch.forEach((url) => {
@@ -47,109 +35,62 @@ messageForm.addEventListener('submit', (event) => {
     } else {
       addMessage(message, 'You');
     }
-  
+
     messageInput.value = '';
+
+    // Send the message to the server
+    ws.send(JSON.stringify({ type: 'image', content: message }));
   });
 
 // Handle file attachment
 attachFile.addEventListener('click', () => {
-    fileInput.click();
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = (event) => {
+    const message = event.target.result;
+    addMessage(message, 'You');
+
+    // Send the message to the server
+    ws.send(JSON.stringify({ type: 'image', content: message }));
+  };
+
+  reader.readAsDataURL(file);
+});
+
+// Handle GIF attachment
+attachGif.addEventListener('click', () => {
+  // You can use a GIF library or API to handle GIFs
+});
+
+// Create a message element
+function createMessageElement(content, id) {
+  const messageElement = document.createElement('div');
+  messageElement.classList.add('message');
+
+  const messageText = document.createElement('span');
+  messageText.classList.add('message-text');
+  messageText.textContent = content;
+
+  const messageSender = document.createElement('span');
+  messageSender.classList.add('message-sender');
+  messageSender.textContent = 'You: ';
+
+  messageElement.appendChild(messageSender);
+  messageElement.appendChild(messageText);
+
+  const deleteButton = document.createElement('button');
+  deleteButton.textContent = 'Delete';
+  deleteButton.addEventListener('click', () => {
+    messageElement.remove();
+    ws.send(JSON.stringify({ type: 'delete', id }));
   });
-  
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files[0];
-  
-    if (!file.type.startsWith('image/')) {
-      return;
-    }
-  
-    const messageId = generateMessageId();
-    const messageElement = document.createElement('div');
-    messageElement.id = messageId;
-    messageElement.classList.add('message');
-  
-    const messageText = document.createElement('span');
-    messageText.classList.add('message-text');
-  
-    const messageSender = document.createElement('span');
-    messageSender.classList.add('message-sender');
-    messageSender.textContent = 'You: ';
-  
-    messageElement.appendChild(messageSender);
-    messageElement.appendChild(messageText);
-    messages.appendChild(messageElement);
-  
-    const reader = new FileReader();
-  
-    reader.onload = (event) => {
-      const message = event.target.result;
-      messageText.textContent = `[Image](${messageId})`;
-      messageText.style.backgroundImage = `url(${message})`;
-      messageText.style.backgroundSize = 'contain';
-      messageText.style.backgroundRepeat = 'no-repeat';
-    };
-  
-    reader.readAsDataURL(file);
-  });
-  
-  // Add a message to the chat
-  function addMessage(message, sender) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-  
-    const messageText = document.createElement('span');
-    messageText.classList.add('message-text');
-    messageText.textContent = message;
-  
-    const messageSender = document.createElement('span');
-    messageSender.classList.add('message-sender');
-    messageSender.textContent = sender + ': ';
-  
-    messageElement.appendChild(messageSender);
-    messageElement.appendChild(messageText);
-    messages.appendChild(messageElement);
-  }
-  
-  // Handle form submission
-  messageForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-  
-    const message = messageInput.value.trim();
-    if (!message) return;
-  
-    // Check if the message contains an image link
-    const urlPattern = /\[(Image)\]\((\S+)\)/g;
-    const urlMatch = message.match(urlPattern);
-  
-    if (urlMatch) {
-      // Send each image link separately
-      urlMatch.forEach((match) => {
-        const [, type, url] = match.match(urlPattern)[1];
-        if (type === 'Image') {
-          const messageId = generateMessageId();
-          const messageElement = document.createElement('div');
-          messageElement.id = messageId;
-          messageElement.classList.add('message');
-  
-          const messageText = document.createElement('span');
-          messageText.classList.add('message-text');
-          messageText.textContent = `[Image](${messageId})`;
-          messageText.style.backgroundImage = `url(${url})`;
-          messageText.style.backgroundSize = 'contain';
-          messageText.style.backgroundRepeat = 'no-repeat';
-  
-          const messageSender = document.createElement('span');
-          messageSender.classList.add('message-sender');
-          messageSender.textContent = 'You: ';
-  
-          messageElement.appendChild(messageSender);
-          messageElement.appendChild(messageText);
-          messages.appendChild(messageElement);
-        }
-      });
-    } else {
-      addMessage(message, 'You');
-    }
-  
-    messageInput.value = '';
-  });
+
+  messageElement.appendChild(deleteButton);
+
+  return messageElement;
+}
