@@ -1,6 +1,7 @@
 const ws = new WebSocket('ws://localhost:3000');
 
 let username = '';
+let recipient = '';
 
 ws.onopen = () => {
   // Get user's username
@@ -29,7 +30,6 @@ const messageInput = document.getElementById('message-input');
 const fileInput = document.getElementById('file-input');
 const attachFile = document.getElementById('attach-file');
 const attachGif = document.getElementById('attach-gif');
-let recipient = '';
 
 messageForm.addEventListener('submit', (event) => {
   event.preventDefault();
