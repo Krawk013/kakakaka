@@ -15,74 +15,34 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocket.Server({ server });
 
-let clients = [];
-
-function generateMessageId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-function createMessageElement(content, id) {
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message');
-
-  const messageText = document.createElement('span');
-  messageText.classList.add('message-text');
-  messageText.textContent = content;
-
-  const messageSender = document.createElement('span');
-  messageSender.classList.add('message-sender');
-  messageSender.textContent = 'You: ';
-
-  messageElement.appendChild(messageSender);
-  messageElement.appendChild(messageText);
-
-  const deleteButton = document.createElement('button');
-  deleteButton.textContent = 'Delete';
-  deleteButton.addEventListener('click', () => {
-    messageElement.remove();
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: 'delete', id }));
-      }
-    });
-  });
-
-  messageElement.appendChild(deleteButton);
-
-  return messageElement;
-}
+let users = {};
 
 wss.on('connection', (ws) => {
-  clients.push(ws);
-
   ws.on('message', (message) => {
     const parsedMessage = JSON.parse(message);
 
-    if (parsedMessage.type === 'image') {
-      const messageId = generateMessageId();
-      const messageElement = createMessageElement(parsedMessage.content, messageId);
+    if (parsedMessage.type === 'username') {
+      const username = parsedMessage.username;
+      users[username] = ws;
+    } else if (parsedMessage.type === 'message') {
+      const sender = parsedMessage.sender;
+      const recipient = parsedMessage.recipient;
+      const content = parsedMessage.content;
 
-      clients.forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({
-            type: 'image',
-            content: parsedMessage.content,
-            id: messageId,
-          }));
-        }
-      });
-    } else if (parsedMessage.type === 'delete') {
-      const messageElement = document.getElementById(parsedMessage.id);
-      if (messageElement) {
-        messageElement.remove();
+      if (recipient in users) {
+        users[recipient].send(JSON.stringify({ type: 'message', sender, content }));
       }
-    } else {
-      // Handle other message types here
     }
   });
 
   ws.on('close', () => {
-    clients = clients.filter((client) => client !== ws);
+    // Remove user from users object
+    for (let key in users) {
+      if (users[key] === ws) {
+        delete users[key];
+        break;
+      }
+    }
   });
 });
 
