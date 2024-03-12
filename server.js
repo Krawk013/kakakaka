@@ -26,12 +26,14 @@ wss.on('connection', (ws) => {
       users[username] = ws;
     } else if (parsedMessage.type === 'message') {
       const sender = parsedMessage.sender;
-      const recipient = parsedMessage.recipient;
       const content = parsedMessage.content;
 
-      if (recipient in users) {
-        users[recipient].send(JSON.stringify({ type: 'message', sender, content }));
-      }
+      // Broadcast the message to all connected clients
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'message', sender, content }));
+        }
+      });
     }
   });
 
